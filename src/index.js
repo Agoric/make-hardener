@@ -19,9 +19,15 @@
 // then copied from proposal-frozen-realms deep-freeze.js
 // then copied from SES/src/bundle/deepFreeze.js
 
-function makeHardener(initialFringe) {
-  const { freeze, getOwnPropertyDescriptors, getPrototypeOf } = Object;
+function makeHardener(initialFringe, freeze) {
+  const { getOwnPropertyDescriptors, getPrototypeOf } = Object;
   const { ownKeys } = Reflect;
+
+  if (!freeze) {
+    // Default to Object.freeze.
+    freeze = Object.freeze;
+  }
+
   // Objects that we won't freeze, either because we've frozen them already,
   // or they were one of the initial roots (terminals). These objects form
   // the "fringe" of the hardened object graph.
