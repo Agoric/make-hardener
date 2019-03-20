@@ -19,15 +19,9 @@
 // then copied from proposal-frozen-realms deep-freeze.js
 // then copied from SES/src/bundle/deepFreeze.js
 
-function makeHardener(initialFringe, freeze) {
-  const { getOwnPropertyDescriptors, getPrototypeOf } = Object;
+function makeHardener(initialFringe, naivePrepareObject) {
+  const { freeze, getOwnPropertyDescriptors, getPrototypeOf } = Object;
   const { ownKeys } = Reflect;
-
-  if (!freeze) {
-    // Default to Object.freeze.
-    freeze = Object.freeze;
-  }
-
   // Objects that we won't freeze, either because we've frozen them already,
   // or they were one of the initial roots (terminals). These objects form
   // the "fringe" of the hardened object graph.
@@ -60,6 +54,14 @@ function makeHardener(initialFringe, freeze) {
     }
 
     function freezeAndTraverse(obj) {
+      // Naively prepare the object for freezing.
+      // This is not expected to handle baroque combinations
+      // of Proxies or already-frozen objects, but it allows
+      // for the construction of Jessie's `immunize`.
+      if (naivePrepareObject) {
+        naivePrepareObject(obj);
+      }
+
       // Immediately freeze the object to ensure reactive
       // objects such as proxies won't add properties
       // during traversal, before they get frozen.
